@@ -65,17 +65,36 @@ class HostTests(unittest.TestCase):
 
 
 class ConnectionEnvironmentTests(unittest.TestCase):
+ def test_chosen_folder_persists_and_reset_restores_downloads(self):
+  import host,tempfile,os
+  from unittest.mock import patch
+  from types import SimpleNamespace
+  with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as temporary:
+   folder=Path(temporary)/'My videos';folder.mkdir()
+   with patch.object(host,'__file__',str(Path(temporary)/'host.py')),patch.object(host.sys,'platform','win32'),patch.dict(os.environ,{'USERPROFILE':str(Path.home())},clear=True),patch.object(host.subprocess,'run',return_value=SimpleNamespace(returncode=0,stdout=str(folder))):
+    self.assertEqual(host.directory_preferences('chooseDirectory')['directory'],str(folder))
+    self.assertEqual(host.download_directory(),folder)
+    self.assertEqual(host.directory_preferences('preferences')['directory'],str(folder))
+    self.assertEqual(host.directory_preferences('resetDirectory')['directory'],str(Path.home()/'Downloads'))
+ def test_cancelled_folder_picker_preserves_saved_folder(self):
+  import host,tempfile,json,os
+  from unittest.mock import patch
+  from types import SimpleNamespace
+  with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as temporary:
+   path=Path(temporary);(path/'preferences.json').write_text(json.dumps({'directory':str(path)}))
+   with patch.object(host,'__file__',str(path/'host.py')),patch.object(host.sys,'platform','win32'),patch.dict(os.environ,{'USERPROFILE':str(Path.home())},clear=True),patch.object(host.subprocess,'run',return_value=SimpleNamespace(returncode=0,stdout='')):
+    result=host.directory_preferences('chooseDirectory');self.assertTrue(result['cancelled']);self.assertEqual(host.download_directory(),path)
  def test_downloads_go_directly_into_downloads_without_product_subfolder(self):
   import host,os
   from unittest.mock import patch
-  with patch.dict(os.environ,{},clear=True),patch.object(host.Path,'home',return_value=Path('user-home')):
+  with patch.dict(os.environ,{'USERPROFILE':str(Path.home())},clear=True),patch.object(host.Path,'home',return_value=Path('user-home')):
    self.assertEqual(host.download_directory(),Path('user-home')/'Downloads')
  def test_status_advertises_updated_helper_compatibility(self):
   import host
   from unittest.mock import patch
   with patch('importlib.util.find_spec',return_value=True),patch.object(host,'ffmpeg_path',return_value='ffmpeg'):
    status=host.handle({'action':'status'})
-  self.assertEqual(status['compatibilityVersion'],3);self.assertEqual(status['helperVersion'],'0.1.6')
+  self.assertEqual(status['compatibilityVersion'],4);self.assertEqual(status['helperVersion'],'0.2.0')
  def test_tls_debug_path_is_not_inherited_and_other_settings_are_unchanged(self):
   import host,os
   from unittest.mock import patch

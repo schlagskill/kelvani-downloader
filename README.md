@@ -7,3 +7,7 @@ Eine Browsererweiterung plus ein lokaler Windows-Helfer für Medienverarbeitung.
 Der Helfer behebt einen nicht zugänglichen SSLKEYLOGFILE-Protokollpfad. Alte Helfer werden erkannt; ein offener Tab mit abgelaufenem Erweiterungskontext bietet YouTube neu laden an. Verfügbare Formate hängen vom Video ab; keine DRM-Umgehung oder Anmeldung.
 
 Downloads werden direkt im Downloads-Ordner gespeichert, ohne Kelvani-Unterordner. Im Erweiterungsfenster kann ein YouTube-Videolink eingefuegt werden. Andere Websites werden abgewiesen.
+
+
+Settings update: gear in the popup; English by default, German selectable and saved.
+Download folder selection via the Windows folder picker. Default: Downloads. Update the local helper using the copied setup command.

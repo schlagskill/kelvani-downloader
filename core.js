@@ -6,8 +6,8 @@ export function videoUrl(value) {
  return 'https://www.youtube.com/watch?v='+id;
 }
 export function request(value) {
- if(!value||!['inspect','download','status','job','cancel'].includes(value.action))throw new Error('Ungültige Aktion.');
- if(value.action==='status')return {action:'status'};
+ if(!value||!['inspect','download','status','job','cancel','preferences','chooseDirectory','resetDirectory'].includes(value.action))throw new Error('Ungültige Aktion.');
+ if(['status','preferences','chooseDirectory','resetDirectory'].includes(value.action))return {action:value.action};
  if(['job','cancel'].includes(value.action)){if(!/^[a-f0-9]{32}$/.test(value.jobId||''))throw new Error('Ungültiger Download.');return {action:value.action,jobId:value.jobId};}
  const url=videoUrl(value.url);
  if(value.action==='inspect')return {action:'inspect',url};

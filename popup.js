@@ -1,7 +1,20 @@
 import {videoUrl} from './core.js';
 import './setup-help.js';
+import './language.js';
+globalThis.KelvaniLanguage.startLanguage();
 const $=s=>document.querySelector(s);let url;
 const preview=!globalThis.chrome?.runtime?.id;
+async function directory(action='preferences'){
+ const status=$('#directory-status');$('#choose-directory').disabled=true;$('#reset-directory').disabled=true;
+ try{if(preview){status.textContent='Designvorschau. Downloads nur in der installierten Erweiterung.';return;}
+ const helper=await chrome.runtime.sendMessage({action:'status'});if(!helper?.ok){showSetup(helper?.updateRequired);toggleSettings(false);return;}
+ const result=await chrome.runtime.sendMessage({action});if(!result?.ok)throw Error(result?.error||'Ordner konnte nicht gespeichert werden.');$('#directory-path').textContent=result.directory;status.textContent='';
+ }catch(error){status.textContent=error.message;}finally{$('#choose-directory').disabled=false;$('#reset-directory').disabled=false;}
+}
+function toggleSettings(open){document.body.classList.toggle('settings-open',open);$('#settings-panel').hidden=!open;$('#settings-toggle').setAttribute('aria-expanded',String(open));if(open){directory();$('#settings-back').focus();}else $('#settings-toggle').focus();}
+$('#settings-toggle').onclick=()=>toggleSettings($('#settings-panel').hidden);
+$('#settings-back').onclick=()=>toggleSettings(false);
+$('#choose-directory').onclick=()=>directory('chooseDirectory');$('#reset-directory').onclick=()=>directory('resetDirectory');
 $('#url-form').addEventListener('submit',event=>{event.preventDefault();loadNative($('#video-url').value.trim());});
 $('#video-url').addEventListener('input',()=>{url=undefined;$('#download').disabled=true;$('#status').textContent='';});
 $('#format').addEventListener('change',()=>$('#quality-label').hidden=$('#format').value!=='mp4');
@@ -50,7 +63,7 @@ async function followJob(jobId,status){
   if(!status.isConnected)break;
   const info=await chrome.runtime.sendMessage({action:'job',jobId});
   if(!info.ok)throw new Error(info.error);
-  if(info.phase==='done'){status.textContent='Gespeichert im Downloads-Ordner';break;}
+  if(info.phase==='done'){status.textContent=info.defaultDirectory===false?'Im gewählten Ordner gespeichert':'Gespeichert im Downloads-Ordner';break;}
   if(info.phase==='error')throw new Error(info.error||'Download fehlgeschlagen.');
   if(info.phase==='cancelled'){status.textContent='Download abgebrochen.';break;}
   status.textContent='Download läuft · '+Math.round(info.percent||0)+' %';

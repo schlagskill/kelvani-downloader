@@ -13,6 +13,11 @@ async function boot(){
  return {connections,send,listener,sender};
 }
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
+test('web content cannot open the native folder picker or change preferences',async()=>{
+ const {listener,connections}=await boot();
+ for(const action of ['preferences','chooseDirectory','resetDirectory'])assert.equal(listener({action},{id:'kelvani-test',tab:{},url:'https://www.youtube.com/watch?v=jNQXAC9IVRw'},()=>assert.fail()),false);
+ assert.equal(connections.length,0);
+});
 test('an older installed helper is identified before inspecting media',async()=>{
  const {connections,send}=await boot();const response=send({action:'status'});
  connections[0].receive({...connections[0].sent[0],ok:true,ffmpeg:true});
@@ -21,7 +26,7 @@ test('an older installed helper is identified before inspecting media',async()=>
 test('parallel native responses are matched even when arriving out of order',async()=>{
  const {connections,send}=await boot();const first=send({action:'status'}),second=send({action:'status'});
  const port=connections[0];assert.equal(connections.length,1);
- port.receive({...port.sent[1],ok:true,compatibilityVersion:3,marker:2});port.receive({...port.sent[0],ok:true,compatibilityVersion:3,marker:1});
+ port.receive({...port.sent[1],ok:true,compatibilityVersion:4,marker:2});port.receive({...port.sent[0],ok:true,compatibilityVersion:4,marker:1});
  assert.equal((await first).marker,1);assert.equal((await second).marker,2);
 });
 test('foreign senders and foreign page origins never reach the helper',async()=>{
@@ -37,11 +42,11 @@ test('disconnect rejects pending work and a later request reconnects',async()=>{
  const {connections,send}=await boot();const first=send({action:'status'});connections[0].disconnect();
  assert.equal((await first).ok,false);
  const second=send({action:'status'});assert.equal(connections.length,2);
- connections[0].disconnect();connections[1].receive({...connections[1].sent[0],ok:true,compatibilityVersion:3});
+ connections[0].disconnect();connections[1].receive({...connections[1].sent[0],ok:true,compatibilityVersion:4});
  assert.equal((await second).ok,true);
 });
 test('a synchronous port failure clears its pending request',async()=>{
- const {connections,send}=await boot();const first=send({action:'status'});connections[0].receive({...connections[0].sent[0],ok:true,compatibilityVersion:3});await first;
+ const {connections,send}=await boot();const first=send({action:'status'});connections[0].receive({...connections[0].sent[0],ok:true,compatibilityVersion:4});await first;
  connections[0].fail=true;const failed=await send({action:'status'});assert.equal(failed.ok,false);assert.match(failed.error,/Port geschlossen/);
- connections[0].fail=false;const retry=send({action:'status'});await tick();connections[0].receive({...connections[0].sent.at(-1),ok:true,compatibilityVersion:3});assert.equal((await retry).ok,true);
+ connections[0].fail=false;const retry=send({action:'status'});await tick();connections[0].receive({...connections[0].sent.at(-1),ok:true,compatibilityVersion:4});assert.equal((await retry).ok,true);
 });

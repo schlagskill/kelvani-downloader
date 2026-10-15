@@ -27,7 +27,7 @@ function native(payload){
   let requestId;
   try{
    const connection=connect();requestId=crypto.randomUUID();
-   const timer=setTimeout(()=>settle(requestId,new Error('Der Helfer antwortet nicht.')),payload.action==='inspect'?90000:15000);
+   const timer=setTimeout(()=>settle(requestId,new Error('Der Helfer antwortet nicht.')),payload.action==='chooseDirectory'?130000:payload.action==='inspect'?90000:15000);
    pending.set(requestId,{resolve,reject,timer,connection});
    connection.postMessage({...payload,requestId});
   }catch(error){
@@ -38,9 +38,10 @@ function native(payload){
 chrome.runtime.onMessage.addListener((message,sender,reply)=>{
  if(sender.id!==chrome.runtime.id)return false;
  if(sender.tab&&!sender.url?.startsWith('https://www.youtube.com/'))return false;
+ if(sender.tab&&['preferences','chooseDirectory','resetDirectory'].includes(message?.action))return false;
  let payload;try{payload=request(message);}catch(error){reply({ok:false,error:error.message});return false;}
  native(payload).then(result=>{
-  if(payload.action==='status'&&result.ok&&result.compatibilityVersion!==3){reply({ok:false,updateRequired:true,error:'Die lokale Downloadkomponente braucht ein Update.'});return;}
+  if(payload.action==='status'&&result.ok&&result.compatibilityVersion!==4){reply({ok:false,updateRequired:true,error:'Die lokale Downloadkomponente braucht ein Update.'});return;}
   reply(result);
  }).catch(error=>reply({ok:false,error:error.message+' Bitte den Kelvani Helfer prüfen.'}));return true;
 });

@@ -19,6 +19,7 @@ async function showPanel(){
  panel.innerHTML='<p class="kd-status" role="status">Formate laden …</p><div class="kd-fields" hidden><label>Format<select class="kd-format"><option value="mp4">MP4</option><option value="mp3">MP3</option><option value="wav">WAV</option></select></label><label class="kd-quality-label">Auflösung<select class="kd-quality"></select></label><button class="kd-start" disabled>Herunterladen</button></div><button class="kd-retry" hidden>Erneut prüfen</button>';
  document.body.append(panel);mounted?.setAttribute('aria-expanded','true');
  const controller=new AbortController(),options={signal:controller.signal};
+ globalThis.KelvaniLanguage?.startLanguage(panel);
  const position=()=>{const anchor=mounted?.getBoundingClientRect();if(!anchor){closePanel(false);return;}const gap=8,edge=12,width=Math.min(280,window.innerWidth-2*edge);panel.style.width=width+'px';panel.style.left=Math.max(edge,Math.min(anchor.right-width,window.innerWidth-width-edge))+'px';panel.style.top=Math.max(edge,anchor.bottom+gap)+'px';panel.style.maxHeight=Math.max(100,window.innerHeight-anchor.bottom-gap-edge)+'px';};
  panelCleanup=()=>controller.abort();
  position();if(panel.showPopover)panel.showPopover();
@@ -68,7 +69,7 @@ async function followJob(jobId,status){
   if(!status.isConnected)break;
   const info=await sendToHelper({action:'job',jobId});
   if(!info.ok)throw new Error(info.error);
-  if(info.phase==='done'){status.textContent='Gespeichert im Downloads-Ordner';break;}
+  if(info.phase==='done'){status.textContent=info.defaultDirectory===false?'Im gewählten Ordner gespeichert':'Gespeichert im Downloads-Ordner';break;}
   if(info.phase==='error')throw new Error(info.error||'Download fehlgeschlagen.');
   if(info.phase==='cancelled'){status.textContent='Download abgebrochen.';break;}
   status.textContent='Download läuft · '+Math.round(info.percent||0)+' %';

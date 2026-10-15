@@ -10,7 +10,28 @@ def media_environment():
  return env
 
 def download_directory():
- return Path(os.environ.get('KELVANI_DOWNLOAD_DIR',str(Path.home()/'Downloads')))
+ if os.environ.get('KELVANI_DOWNLOAD_DIR'):return Path(os.environ['KELVANI_DOWNLOAD_DIR'])
+ try:
+  value=json.loads((Path(__file__).parent/'preferences.json').read_text(encoding='utf-8')).get('directory')
+  if isinstance(value,str) and Path(value).is_absolute():return Path(value)
+ except (OSError,ValueError,TypeError,AttributeError):pass
+ return Path.home()/'Downloads'
+
+def directory_preferences(action):
+ prefs=Path(__file__).parent/'preferences.json'
+ if action=='chooseDirectory':
+  if sys.platform!='win32':return {'ok':False,'error':'Nur unter Windows verfügbar.'}
+  script="[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName System.Windows.Forms; $d=New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description='Choose download folder'; $d.ShowNewFolderButton=$true; try { if($d.ShowDialog() -eq 'OK'){[Console]::Write($d.SelectedPath)} } finally {$d.Dispose()}"
+  result=subprocess.run(['powershell.exe','-NoProfile','-STA','-Command',script],capture_output=True,text=True,encoding='utf-8-sig',timeout=120,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+  if result.returncode:return {'ok':False,'error':'Ordner konnte nicht gespeichert werden.'}
+  value=result.stdout.strip()
+  if not value:return {'ok':True,'directory':str(download_directory()),'cancelled':True}
+  folder=Path(value)
+  if not folder.is_absolute() or not folder.is_dir():return {'ok':False,'error':'Ordner konnte nicht gespeichert werden.'}
+  temp=prefs.with_suffix('.tmp');temp.write_text(json.dumps({'directory':str(folder)}),encoding='utf-8');temp.replace(prefs)
+ elif action=='resetDirectory':
+  prefs.unlink(missing_ok=True)
+ return {'ok':True,'directory':str(download_directory())}
 
 def friendly_error(raw):
  text=str(raw).lower()
@@ -25,8 +46,8 @@ if VENDOR.is_dir():
  os.environ["PYTHONPATH"]=str(VENDOR)+os.pathsep+os.environ.get("PYTHONPATH","")
 
 def validate(msg):
- if not isinstance(msg,dict) or msg.get('action') not in ('status','inspect','download','job','cancel'):raise ValueError('Ungültige Anfrage')
- if msg['action']=='status':return msg
+ if not isinstance(msg,dict) or msg.get('action') not in ('status','inspect','download','job','cancel','preferences','chooseDirectory','resetDirectory'):raise ValueError('Ungültige Anfrage')
+ if msg['action'] in ('status','preferences','chooseDirectory','resetDirectory'):return {'action':msg['action']}
  if msg['action'] in ('job','cancel'):
   import re
   if not re.fullmatch(r'[a-f0-9]{32}',str(msg.get('jobId',''))):raise ValueError('Ungültiger Download')
@@ -63,9 +84,10 @@ def command(msg,directory):
 
 def handle(msg):
  msg=validate(msg)
+ if msg['action'] in ('preferences','chooseDirectory','resetDirectory'):return directory_preferences(msg['action'])
  import importlib.util
  if not importlib.util.find_spec('yt_dlp'):return {'ok':False,'error':'yt-dlp fehlt im lokalen Helfer.'}
- if msg['action']=='status':return {'ok':True,'helperVersion':'0.1.6','compatibilityVersion':3,'ffmpeg':bool(ffmpeg_path()),'jobs':[dict(job) for job in JOBS.values() if job['phase']=='running']}
+ if msg['action']=='status':return {'ok':True,'helperVersion':'0.2.0','compatibilityVersion':4,'ffmpeg':bool(ffmpeg_path()),'directory':str(download_directory()),'jobs':[dict(job) for job in JOBS.values() if job['phase']=='running']}
  if msg['action']=='download' and not ffmpeg_path():return {'ok':False,'error':'FFmpeg wird für dieses Format benötigt.'}
  directory=download_directory();directory.mkdir(parents=True,exist_ok=True)
  try:process=subprocess.run(command(msg,directory),stdin=subprocess.DEVNULL,env=media_environment(),capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=75 if msg['action']=='inspect' else 900,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
@@ -140,7 +162,7 @@ def run_download(job_id,msg):
   code=process.wait()
   watchdog.cancel()
   with LOCK:
-   if JOBS[job_id]['phase']!='cancelled':JOBS[job_id].update(phase='done' if code==0 and filename else 'error',percent=100 if code==0 and filename else JOBS[job_id]['percent'],filename=filename,error=None if code==0 and filename else friendly_error('\n'.join(last)))
+   if JOBS[job_id]['phase']!='cancelled':JOBS[job_id].update(phase='done' if code==0 and filename else 'error',percent=100 if code==0 and filename else JOBS[job_id]['percent'],filename=filename,defaultDirectory=directory==Path.home()/'Downloads',error=None if code==0 and filename else friendly_error('\n'.join(last)))
  except Exception as error:
   with LOCK:JOBS[job_id].update(phase='error',error=friendly_error(error))
  finally:
