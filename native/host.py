@@ -9,6 +9,9 @@ def media_environment():
  env.pop('SSLKEYLOGFILE',None)
  return env
 
+def download_directory():
+ return Path(os.environ.get('KELVANI_DOWNLOAD_DIR',str(Path.home()/'Downloads')))
+
 def friendly_error(raw):
  text=str(raw).lower()
  if 'permission denied' in text:return 'Eine lokale Datei ist nicht zugänglich. Bitte die Einrichtung einmal erneut ausführen.'
@@ -62,9 +65,9 @@ def handle(msg):
  msg=validate(msg)
  import importlib.util
  if not importlib.util.find_spec('yt_dlp'):return {'ok':False,'error':'yt-dlp fehlt im lokalen Helfer.'}
- if msg['action']=='status':return {'ok':True,'helperVersion':'0.1.4','compatibilityVersion':2,'ffmpeg':bool(ffmpeg_path()),'jobs':[dict(job) for job in JOBS.values() if job['phase']=='running']}
+ if msg['action']=='status':return {'ok':True,'helperVersion':'0.1.6','compatibilityVersion':3,'ffmpeg':bool(ffmpeg_path()),'jobs':[dict(job) for job in JOBS.values() if job['phase']=='running']}
  if msg['action']=='download' and not ffmpeg_path():return {'ok':False,'error':'FFmpeg wird für dieses Format benötigt.'}
- directory=Path(os.environ.get('KELVANI_DOWNLOAD_DIR',str(Path.home()/'Downloads'/'Kelvani')));directory.mkdir(parents=True,exist_ok=True)
+ directory=download_directory();directory.mkdir(parents=True,exist_ok=True)
  try:process=subprocess.run(command(msg,directory),stdin=subprocess.DEVNULL,env=media_environment(),capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=75 if msg['action']=='inspect' else 900,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
  except subprocess.TimeoutExpired:return {'ok':False,'error':'YouTube antwortet nicht rechtzeitig. Bitte erneut versuchen.'}
  if process.returncode:return {'ok':False,'error':friendly_error(process.stderr)}
@@ -115,7 +118,7 @@ def quality_options(formats):
 
 def run_download(job_id,msg):
  try:
-  directory=Path(os.environ.get('KELVANI_DOWNLOAD_DIR',str(Path.home()/'Downloads'/'Kelvani')));directory.mkdir(parents=True,exist_ok=True)
+  directory=download_directory();directory.mkdir(parents=True,exist_ok=True)
   cmd=command(msg,directory)
   cmd[cmd.index('--no-progress')]='--progress'
   cmd+=['--newline']

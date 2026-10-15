@@ -40,7 +40,7 @@ chrome.runtime.onMessage.addListener((message,sender,reply)=>{
  if(sender.tab&&!sender.url?.startsWith('https://www.youtube.com/'))return false;
  let payload;try{payload=request(message);}catch(error){reply({ok:false,error:error.message});return false;}
  native(payload).then(result=>{
-  if(payload.action==='status'&&result.ok&&result.compatibilityVersion!==2){reply({ok:false,updateRequired:true,error:'Die lokale Downloadkomponente braucht ein Update.'});return;}
+  if(payload.action==='status'&&result.ok&&result.compatibilityVersion!==3){reply({ok:false,updateRequired:true,error:'Die lokale Downloadkomponente braucht ein Update.'});return;}
   reply(result);
  }).catch(error=>reply({ok:false,error:error.message+' Bitte den Kelvani Helfer prüfen.'}));return true;
 });

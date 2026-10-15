@@ -65,12 +65,17 @@ class HostTests(unittest.TestCase):
 
 
 class ConnectionEnvironmentTests(unittest.TestCase):
+ def test_downloads_go_directly_into_downloads_without_product_subfolder(self):
+  import host,os
+  from unittest.mock import patch
+  with patch.dict(os.environ,{},clear=True),patch.object(host.Path,'home',return_value=Path('user-home')):
+   self.assertEqual(host.download_directory(),Path('user-home')/'Downloads')
  def test_status_advertises_updated_helper_compatibility(self):
   import host
   from unittest.mock import patch
   with patch('importlib.util.find_spec',return_value=True),patch.object(host,'ffmpeg_path',return_value='ffmpeg'):
    status=host.handle({'action':'status'})
-  self.assertEqual(status['compatibilityVersion'],2);self.assertEqual(status['helperVersion'],'0.1.4')
+  self.assertEqual(status['compatibilityVersion'],3);self.assertEqual(status['helperVersion'],'0.1.6')
  def test_tls_debug_path_is_not_inherited_and_other_settings_are_unchanged(self):
   import host,os
   from unittest.mock import patch

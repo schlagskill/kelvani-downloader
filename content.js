@@ -68,7 +68,7 @@ async function followJob(jobId,status){
   if(!status.isConnected)break;
   const info=await sendToHelper({action:'job',jobId});
   if(!info.ok)throw new Error(info.error);
-  if(info.phase==='done'){status.textContent='Gespeichert: '+info.filename;break;}
+  if(info.phase==='done'){status.textContent='Gespeichert im Downloads-Ordner';break;}
   if(info.phase==='error')throw new Error(info.error||'Download fehlgeschlagen.');
   if(info.phase==='cancelled'){status.textContent='Download abgebrochen.';break;}
   status.textContent='Download läuft · '+Math.round(info.percent||0)+' %';
