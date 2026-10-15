@@ -1,0 +1,5 @@
+__pycache__/
+native/vendor/
+native/runtime/
+node_modules/
+.venv/

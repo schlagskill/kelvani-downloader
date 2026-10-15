@@ -1,0 +1,18 @@
+.kelvani-download{border:1px solid #239e59;border-radius:22px;padding:10px 18px;background:#163524;color:#a0f1bc;font:600 14px Arial;cursor:pointer}
+.kelvani-download-panel{box-sizing:border-box;position:fixed;inset:auto;margin:0;width:280px;overflow:auto;z-index:2147483647;background:#212522;color:#f3f6f4;border:1px solid #ffffff24;border-radius:14px;padding:16px;font:14px/1.45 Arial,sans-serif;box-shadow:0 10px 32px #0005;color-scheme:dark}
+.kelvani-download-panel::backdrop{background:transparent;pointer-events:none}
+.kelvani-download-panel [hidden]{display:none!important}
+.kelvani-download-panel label{display:block;font-size:12px;font-weight:500;color:#becbc2;margin:0 0 14px}
+.kelvani-download-panel select{box-sizing:border-box;display:block;width:100%;border:1px solid #ffffff28;border-radius:9px;background:#2d342f;color:#f3f6f4;padding:10px;margin-top:6px;font:14px Arial,sans-serif}
+.kelvani-download-panel button{cursor:pointer;border-radius:9px;padding:11px;width:100%;font:600 13px Arial,sans-serif;border:0}
+.kelvani-download-panel .kd-start{background:#27b56a;color:#082714}
+.kelvani-download-panel .kd-start:hover:enabled{background:#42cd83}
+.kelvani-download-panel .kd-retry,.kelvani-download-panel .kd-cancel{background:#35483d;color:#d1f4dd;border:1px solid #ffffff20}
+.kelvani-download-panel .kd-status{font-size:12px;color:#d2ded6;margin:0 0 12px;overflow-wrap:anywhere}
+.kelvani-download-panel button:disabled{opacity:.45;cursor:default}
+.kelvani-download-panel :focus-visible,.kelvani-download:focus-visible{outline:2px solid #63df96;outline-offset:3px}
+@media(prefers-reduced-motion:no-preference){.kelvani-download-panel:popover-open{animation:kd-appear .13s ease-out}@keyframes kd-appear{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}}
+.kelvani-download-panel .kd-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.kelvani-download-panel .kd-fields label{margin:0}
+.kelvani-download-panel .kd-start{grid-column:1/-1}
+.kelvani-download-panel .kd-fields:has(.kd-quality-label[hidden]) label:first-child{grid-column:1/-1}

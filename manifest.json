@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "KelvaniDownloader",
+  "version": "0.1.4",
+  "description": "Videos und Audio mit lokalem Helfer herunterladen.",
+  "permissions": [
+    "nativeMessaging",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "setup-help.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css",
+        "setup-help.css"
+      ]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "version_name": "0.1.4 Korrekturen",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxcE0Rqf35SBVk4+yXCHQ76pJa0UPKM6hrEPyzEFmJ6+tgPN0dx26AW4jV8edQtyV2VkbkfWEVZaC/oWV+vV6WQpD38+p3pkV+uX+QXccFqdVlAMLw1JRSxI7gkab3tX88nHUyIajk+5o4IV0AEeTueK6ayKWQuXgwwYn6hNrMCTIlEUj/6M/QoVXQZC57rfI6reF6U9/OzkNq17xecDSEfTrW0O+/EnE2zh0Anbqk7vdTb1j+H8wpNKlsKOKI/Gfl0pFW4NIRAstXPfiiIiSyRjIGmfZAsrWrO6iCJ3kdhN2x2opJJboOhY7HQ9LIPgLa7uupTvgErk7kTpevpf9LwIDAQAB",
+  "minimum_chrome_version": "120"
+}
