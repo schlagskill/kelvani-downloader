@@ -1,4 +1,4 @@
-# KelvaniDownloader 0.1.7
+# KelvaniDownloader 0.2.0
 
 Im Erweiterungsmenü Befehl kopieren wählen. Windows-Terminal oder PowerShell öffnen, einfügen und Enter drücken. Der Befehl lädt die geprüften Installationsdateien selbst herunter und installiert oder aktualisiert den lokalen Helfer. Kein entpackter Ordner ist nötig. Danach Erweiterung neu laden und YouTube aktualisieren.
 
