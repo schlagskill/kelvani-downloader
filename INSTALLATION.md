@@ -1,4 +1,4 @@
-# KelvaniDownloader 0.1.6
+# KelvaniDownloader 0.1.7
 
 ## Helfer einrichten oder aktualisieren
 1. Im Erweiterungsmenü auf **Befehl kopieren** klicken.
