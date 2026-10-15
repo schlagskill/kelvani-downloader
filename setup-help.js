@@ -3,7 +3,7 @@
  function create({update=false}={}){
   const section=document.createElement('section');section.className='kd-setup';
   const title=document.createElement('strong');title.textContent=update?'Downloadkomponente aktualisieren':'Einmalig vorbereiten';
-  const intro=document.createElement('p');intro.textContent=update?'Deine lokale Downloadkomponente ist noch eine ältere Version. Führe die Einrichtung aus dem neuen Paket erneut aus; sie ersetzt die alte Version.':'Bevor du etwas herunterladen kannst, richte die lokale Downloadkomponente ein.';
+  const intro=document.createElement('p');intro.textContent=update?'Deine lokale Downloadkomponente ist noch eine ältere Version. Aktualisiere sie mit diesem Befehl. Die benötigten Dateien werden automatisch heruntergeladen.':'Bevor du etwas herunterladen kannst, richte die lokale Downloadkomponente ein.';
   const steps=document.createElement('ol');
   for(const text of ['Windows-Terminal oder PowerShell öffnen. Der aktuelle Ordner ist egal.','Befehl kopieren, im Terminal einfügen und Enter drücken. Die Dateien werden automatisch geladen und geprüft.','Danach die Erweiterung neu laden und YouTube aktualisieren.']){const item=document.createElement('li');item.textContent=text;steps.append(item);}
   const code=document.createElement('input');code.className='kd-setup-command';code.readOnly=true;code.value=command;code.setAttribute('aria-label','Einrichtungsbefehl');
