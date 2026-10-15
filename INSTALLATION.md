@@ -1,4 +1,4 @@
-# KelvaniDownloader 0.1.5
+# KelvaniDownloader 0.1.6
 
 ## Helfer einrichten oder aktualisieren
 1. Im Erweiterungsmenü auf **Befehl kopieren** klicken.
@@ -17,3 +17,5 @@ Windows 64 Bit, Internetverbindung und Node.js werden benötigt. Eine private Py
 Eine Browsererweiterung und ein lokales Hilfsprogramm für MP3/WAV sowie das Zusammenführen getrennter Video- und Tonspuren. Nur tatsächlich verfügbare Formate, keine DRM-Umgehung oder Zugangsdaten. Die komplette Zusammenarbeit mit der installierten Erweiterung in Edge ist noch nicht vollständig nachgewiesen. Isolierte Installation, native Kommunikation, ein öffentlicher MP4-Download und vollständige Dekodierung wurden zuvor geprüft.
 
 Alternativ kann INSTALLIEREN.cmd aus einem vorhandenen aktuellen Paket verwendet werden.
+
+Downloads werden direkt im Downloads-Ordner gespeichert, ohne Kelvani-Unterordner. Im Erweiterungsfenster kann ein YouTube-Videolink eingefuegt werden. Andere Websites werden abgewiesen.
