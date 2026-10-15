@@ -220,7 +220,7 @@ def main():
   while True:
    msg=read_message(sys.stdin.buffer)
    if msg is None:break
-   if msg.get('action')=='inspect':threading.Thread(target=answer,args=(msg,),daemon=True).start()
+   if msg.get('action') in ('inspect','chooseDirectory'):threading.Thread(target=answer,args=(msg,),daemon=True).start()
    else:answer(msg)
  finally:
   with LOCK:
