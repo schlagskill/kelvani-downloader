@@ -1,7 +1,9 @@
 export function videoUrl(value) {
  const url=new URL(value);
  if(url.protocol!=='https:'||!['www.youtube.com','youtube.com','m.youtube.com','youtu.be'].includes(url.hostname)||url.username||url.password)throw new Error('Nur YouTube Video URLs sind erlaubt.');
- const id=url.hostname==='youtu.be'?url.pathname.slice(1):url.pathname.startsWith('/shorts/')?url.pathname.split('/')[2]:url.searchParams.get('v');
+ const short=url.hostname==='youtu.be';
+ const pathId=(short?url.pathname.match(/^\/([A-Za-z0-9_-]{11})\/?$/):url.pathname.match(/^\/(?:shorts|live)\/([A-Za-z0-9_-]{11})\/?$/))?.[1];
+ const id=pathId||(!short&&url.pathname==='/watch'?url.searchParams.get('v'):null);
  if(!/^[A-Za-z0-9_-]{11}$/.test(id||''))throw new Error('Kein gültiges Video.');
  return 'https://www.youtube.com/watch?v='+id;
 }
