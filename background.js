@@ -7,6 +7,12 @@ function settle(requestId,error,value){
  clearTimeout(entry.timer);pending.delete(requestId);
  if(error)entry.reject(error);else entry.resolve(value);
 }
+function failConnection(connection,error){
+ if(port===connection)port=null;
+ for(const [id,entry] of pending){
+  if(entry.connection===connection)settle(id,error);
+ }
+}
 function connect(){
  if(port)return port;
  const connection=chrome.runtime.connectNative('net.kelvani.downloader');
@@ -24,14 +30,15 @@ function connect(){
 }
 function native(payload){
  return new Promise((resolve,reject)=>{
-  let requestId;
+  let requestId,connection;
   try{
-   const connection=connect();requestId=crypto.randomUUID();
+   connection=connect();requestId=crypto.randomUUID();
    const timer=setTimeout(()=>settle(requestId,new Error('Der Helfer antwortet nicht.')),payload.action==='chooseDirectory'?130000:payload.action==='inspect'?90000:15000);
    pending.set(requestId,{resolve,reject,timer,connection});
    connection.postMessage({...payload,requestId});
   }catch(error){
-   if(requestId&&pending.has(requestId))settle(requestId,error);else reject(error);
+   if(connection)failConnection(connection,error);
+   reject(error);
   }
  });
 }

@@ -45,8 +45,20 @@ test('disconnect rejects pending work and a later request reconnects',async()=>{
  connections[0].disconnect();connections[1].receive({...connections[1].sent[0],ok:true,compatibilityVersion:4});
  assert.equal((await second).ok,true);
 });
-test('a synchronous port failure clears its pending request',async()=>{
+test('a synchronous port failure drops the broken connection and retries with a new port',async()=>{
  const {connections,send}=await boot();const first=send({action:'status'});connections[0].receive({...connections[0].sent[0],ok:true,compatibilityVersion:4});await first;
  connections[0].fail=true;const failed=await send({action:'status'});assert.equal(failed.ok,false);assert.match(failed.error,/Port geschlossen/);
- connections[0].fail=false;const retry=send({action:'status'});await tick();connections[0].receive({...connections[0].sent.at(-1),ok:true,compatibilityVersion:4});assert.equal((await retry).ok,true);
+ const retry=send({action:'status'});await tick();assert.equal(connections.length,2);connections[0].disconnect();connections[1].receive({...connections[1].sent.at(-1),ok:true,compatibilityVersion:4});assert.equal((await retry).ok,true);
+});
+
+test('a broken port promptly rejects other pending requests on the same connection',async()=>{
+ const {connections,send}=await boot();const waiting=send({action:'status'});
+ const broken=connections[0];broken.fail=true;
+ const failed=await send({action:'status'});assert.equal(failed.ok,false);
+ // Release a baseline request after observing whether the failure already settled it.
+ let settled=false;waiting.then(()=>{settled=true;});await tick();
+ const settledBeforeDisconnect=settled;broken.disconnect();await waiting;
+ assert.equal(settledBeforeDisconnect,true);
+ const retry=send({action:'status'});assert.equal(connections.length,2);
+ connections[1].receive({...connections[1].sent[0],ok:true,compatibilityVersion:4});assert.equal((await retry).ok,true);
 });
