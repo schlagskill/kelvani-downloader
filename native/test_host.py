@@ -107,4 +107,31 @@ class ConnectionEnvironmentTests(unittest.TestCase):
   result=host.friendly_error('ERROR: Permission denied: virtual_file.log please report this issue https://github.com/yt-dlp/yt-dlp/issues')
   self.assertLess(len(result),150);self.assertNotIn('virtual_file',result);self.assertNotIn('github',result)
 
+
+class DownloadCancellationTests(unittest.TestCase):
+ def check_failed_start(self,cancel):
+  import host
+  from unittest.mock import patch
+  job_id='b'*32
+  message={'action':'download','url':'https://www.youtube.com/watch?v=abcdefghijk','format':'mp3'}
+  signature=(message['url'],message['format'],None)
+  def failed_start(*args,**kwargs):
+   if cancel:
+    response=host.handle_async({'action':'cancel','jobId':job_id})
+    self.assertEqual(response['phase'],'cancelled')
+   raise OSError('process could not start')
+  with patch.dict(host.JOBS,{job_id:{'jobId':job_id,'phase':'running','percent':0,'format':'mp3'}},clear=True),patch.dict(host.PROCESSES,{},clear=True),patch.dict(host.ACTIVE_REQUESTS,{signature:job_id},clear=True),patch('host.download_directory',return_value=Path('mock-downloads')),patch.object(Path,'mkdir'),patch('host.command',return_value=['yt-dlp','--no-progress']),patch('host.subprocess.Popen',side_effect=failed_start):
+   host.run_download(job_id,message)
+   response=host.handle_async({'action':'job','jobId':job_id})
+   self.assertTrue(response['ok'])
+   self.assertEqual(response['phase'],'cancelled' if cancel else 'error')
+   if cancel:self.assertNotIn('error',response)
+   else:self.assertTrue(response['error'])
+   self.assertNotIn(signature,host.ACTIVE_REQUESTS)
+   self.assertNotIn(job_id,host.PROCESSES)
+ def test_cancel_during_process_start_preserves_cancelled_status_after_error(self):
+  self.check_failed_start(True)
+ def test_process_start_error_without_cancellation_is_still_reported(self):
+  self.check_failed_start(False)
+
 if __name__=='__main__':unittest.main()

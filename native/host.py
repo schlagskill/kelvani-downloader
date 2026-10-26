@@ -164,7 +164,8 @@ def run_download(job_id,msg):
   with LOCK:
    if JOBS[job_id]['phase']!='cancelled':JOBS[job_id].update(phase='done' if code==0 and filename else 'error',percent=100 if code==0 and filename else JOBS[job_id]['percent'],filename=filename,defaultDirectory=directory==Path.home()/'Downloads',error=None if code==0 and filename else friendly_error('\n'.join(last)))
  except Exception as error:
-  with LOCK:JOBS[job_id].update(phase='error',error=friendly_error(error))
+  with LOCK:
+   if JOBS[job_id]['phase']!='cancelled':JOBS[job_id].update(phase='error',error=friendly_error(error))
  finally:
   with LOCK:
    PROCESSES.pop(job_id,None)
