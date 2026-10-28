@@ -134,4 +134,19 @@ class DownloadCancellationTests(unittest.TestCase):
  def test_process_start_error_without_cancellation_is_still_reported(self):
   self.check_failed_start(False)
 
+class DownloadWorkerStartTests(unittest.TestCase):
+ def test_failed_worker_start_does_not_leave_a_running_job_or_block_retry(self):
+  import host
+  from unittest.mock import patch
+  message={'action':'download','url':'https://www.youtube.com/watch?v=abcdefghijk','format':'mp3'}
+  with patch.dict(host.JOBS,{},clear=True),patch.dict(host.ACTIVE_REQUESTS,{},clear=True),patch('host.threading.Thread') as thread,patch('host.ffmpeg_path',return_value='ffmpeg'),patch('importlib.util.find_spec',return_value=object()):
+   thread.return_value.start.side_effect=RuntimeError('cannot start worker')
+   with self.assertRaises(RuntimeError):host.handle_async(message)
+   self.assertEqual(host.JOBS,{})
+   self.assertEqual(host.ACTIVE_REQUESTS,{})
+   thread.return_value.start.side_effect=None
+   response=host.handle_async(message)
+   self.assertTrue(response['ok'])
+   self.assertEqual(len(host.JOBS),1)
+
 if __name__=='__main__':unittest.main()

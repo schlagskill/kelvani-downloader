@@ -203,7 +203,12 @@ def handle_async(msg):
    if JOBS[key]['phase']!='running':del JOBS[key]
   job_id=uuid.uuid4().hex;JOBS[job_id]={'jobId':job_id,'phase':'running','percent':0,'format':msg['format']}
  ACTIVE_REQUESTS[signature]=job_id
- threading.Thread(target=run_download,args=(job_id,msg),daemon=True).start()
+ try:threading.Thread(target=run_download,args=(job_id,msg),daemon=True).start()
+ except Exception:
+  with LOCK:
+   JOBS.pop(job_id,None)
+   if ACTIVE_REQUESTS.get(signature)==job_id:ACTIVE_REQUESTS.pop(signature,None)
+  raise
  return {'ok':True,'jobId':job_id,'phase':'running'}
 
 def answer(msg):
