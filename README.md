@@ -11,3 +11,5 @@ Downloads werden direkt im Downloads-Ordner gespeichert, ohne Kelvani-Unterordne
 
 Settings update: gear in the popup; English by default, German selectable and saved.
 Download folder selection via the Windows folder picker. Default: Downloads. Update the local helper using the copied setup command.
+
+Entwicklungsstand, Testbefehle und Prüfgrenzen: [TESTING.md](TESTING.md).
