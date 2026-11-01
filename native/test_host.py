@@ -149,4 +149,21 @@ class DownloadWorkerStartTests(unittest.TestCase):
    self.assertTrue(response['ok'])
    self.assertEqual(len(host.JOBS),1)
 
+
+class ActiveHistoryTests(unittest.TestCase):
+ def test_pruning_preserves_cancelled_jobs_until_worker_finishes(self):
+  import host
+  from unittest.mock import patch
+  job_id='a'*32
+  jobs={job_id:{'jobId':job_id,'phase':'cancelled','percent':0,'format':'mp3'}}
+  jobs.update({str(i):{'phase':'done'} for i in range(49)})
+  signature=('https://www.youtube.com/watch?v=abcdefghijk','mp3',None)
+  message={'action':'download','url':'https://www.youtube.com/watch?v=lmnopqrstuv','format':'mp3'}
+  with patch.dict(host.JOBS,jobs,clear=True),patch.dict(host.ACTIVE_REQUESTS,{signature:job_id},clear=True),patch('host.threading.Thread'),patch('host.ffmpeg_path',return_value='ffmpeg'),patch('importlib.util.find_spec',return_value=object()):
+   self.assertTrue(host.handle_async(message)['ok'])
+   self.assertIn(job_id,host.JOBS)
+   self.assertNotIn('0',host.JOBS)
+   self.assertEqual(len(host.JOBS),50)
+
 if __name__=='__main__':unittest.main()
+

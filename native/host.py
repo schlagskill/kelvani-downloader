@@ -200,7 +200,7 @@ def handle_async(msg):
   # Keep bounded history without deleting active jobs.
   for key in list(JOBS):
    if len(JOBS)<50:break
-   if JOBS[key]['phase']!='running':del JOBS[key]
+   if JOBS[key]['phase']!='running' and key not in ACTIVE_REQUESTS.values():del JOBS[key]
   job_id=uuid.uuid4().hex;JOBS[job_id]={'jobId':job_id,'phase':'running','percent':0,'format':msg['format']}
  ACTIVE_REQUESTS[signature]=job_id
  try:threading.Thread(target=run_download,args=(job_id,msg),daemon=True).start()
