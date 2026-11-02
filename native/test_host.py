@@ -165,5 +165,26 @@ class ActiveHistoryTests(unittest.TestCase):
    self.assertNotIn('0',host.JOBS)
    self.assertEqual(len(host.JOBS),50)
 
+
+class DownloadOutputFailureTests(unittest.TestCase):
+ def test_output_read_failure_stops_process_before_releasing_active_request(self):
+  import host
+  from unittest.mock import patch,MagicMock
+  job_id='c'*32
+  message={'action':'download','url':'https://www.youtube.com/watch?v=abcdefghijk','format':'mp3'}
+  signature=(message['url'],message['format'],None)
+  process=MagicMock()
+  process.stdout.__iter__.side_effect=OSError('output pipe failed')
+  def stopped(child):
+   self.assertIs(child,process)
+   self.assertEqual(host.ACTIVE_REQUESTS.get(signature),job_id)
+  with patch.dict(host.JOBS,{job_id:{'phase':'running','percent':0}},clear=True),patch.dict(host.PROCESSES,{},clear=True),patch.dict(host.ACTIVE_REQUESTS,{signature:job_id},clear=True),patch('host.download_directory',return_value=Path('mock-downloads')),patch.object(Path,'mkdir'),patch('host.command',return_value=['yt-dlp','--no-progress']),patch('host.subprocess.Popen',return_value=process),patch('host.threading.Timer') as timer,patch('host.stop_process',side_effect=stopped) as stop:
+   host.run_download(job_id,message)
+   stop.assert_called_once_with(process)
+   timer.return_value.cancel.assert_called_once()
+   self.assertEqual(host.JOBS[job_id]['phase'],'error')
+   self.assertNotIn(signature,host.ACTIVE_REQUESTS)
+   self.assertNotIn(job_id,host.PROCESSES)
+
 if __name__=='__main__':unittest.main()
 

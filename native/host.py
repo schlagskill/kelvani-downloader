@@ -139,6 +139,7 @@ def quality_options(formats):
  return [h for h in (2160,1440,1080,720,480,360,240,144) if any(f.get('height')==h and f.get('ext')=='mp4' and f.get('vcodec') not in (None,'none') and not f.get('has_drm') and (f.get('acodec') not in (None,'none') or audio) for f in formats)]
 
 def run_download(job_id,msg):
+ process=None;watchdog=None
  try:
   directory=download_directory();directory.mkdir(parents=True,exist_ok=True)
   cmd=command(msg,directory)
@@ -160,13 +161,14 @@ def run_download(job_id,msg):
      with LOCK:JOBS[job_id]['percent']=float(m[1])
    elif text and not text.startswith('[') and Path(text).suffix in ('.mp4','.mp3','.wav'):filename=Path(text).name
   code=process.wait()
-  watchdog.cancel()
   with LOCK:
    if JOBS[job_id]['phase']!='cancelled':JOBS[job_id].update(phase='done' if code==0 and filename else 'error',percent=100 if code==0 and filename else JOBS[job_id]['percent'],filename=filename,defaultDirectory=directory==Path.home()/'Downloads',error=None if code==0 and filename else friendly_error('\n'.join(last)))
  except Exception as error:
+  if process is not None:stop_process(process)
   with LOCK:
    if JOBS[job_id]['phase']!='cancelled':JOBS[job_id].update(phase='error',error=friendly_error(error))
  finally:
+  if watchdog is not None:watchdog.cancel()
   with LOCK:
    PROCESSES.pop(job_id,None)
    for signature,active_id in list(ACTIVE_REQUESTS.items()):
